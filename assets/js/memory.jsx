@@ -87,15 +87,16 @@ class Game extends React.Component {
       var tempFirstTileRevealed = this.state.firstTileRevealed;
       var tempSecondTileRevealed = this.state.secondTileRevealed;
 
-      tempScore++;
       // matching has not begun
       if(this.state.firstTileRevealed == -1){
+         tempScore++;
          tempTileRevealed[index] = true;
          tempFirstTileRevealed = index;
       }
       // first tile clicked already, clicking second
       else if(this.state.firstTileRevealed != -1 && this.state.secondTileRevealed == -1){
          tempTileRevealed[index] = true;
+         tempScore++;
          // match found
          if(tileOrder[this.state.firstTileRevealed] == tileOrder[index]){
             tempTileMatched[this.state.firstTileRevealed] = true;
