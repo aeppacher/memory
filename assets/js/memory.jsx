@@ -2,146 +2,71 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'reactstrap';
 
-
-// Fisher-Yates shuffle source: https://bost.ocks.org/mike/shuffle/
-function initializeTiles() {
-  var tileArr = ["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"];
-  var index = tileArr.length;
-  var temp = "";
-  var pick = "";
-
-  while (index) {
-    // pick random element
-    pick = Math.floor(Math.random() * index--);
-
-    // swap that element with current index
-    temp = tileArr[pick];
-    tileArr[pick] = tileArr[index];
-    tileArr[index] = temp;
-  }
-
-  return tileArr;
+export default function memory_game(root, channel){
+   ReactDOM.render(<MemoryGame channel={channel} />, root);
 }
 
-function initializeRevealed(){
-   return Array(16).fill(false);
-}
-
-function initializeMatched(){
-   return Array(16).fill(false);
-} 
-
-export default function memory_game(root){
-   ReactDOM.render(<Game />, root);
-}
-
-function Tile(props) {
-   var label = props.revealed ? props.value : "⚓";
-   var className = props.matched ? "tile-matched" : "tile-unmatched";
-   var onClick = props.revealed ? null : props.onClick;
-
-   return (
-      <button className={className} onClick={onClick} enabled={props.matched.toString()}>
-         {label}
-      </button>
-   );
-}
-
-class Game extends React.Component {
+class MemoryGame extends React.Component {
   constructor(props) {
       super(props);
+      this.channel = props.channel;
       this.state = {
-         tileOrder: initializeTiles(),
-         tileRevealed: initializeRevealed(),
-         tileMatched: initializeMatched(),
+         tile_order_masked: Array(16).fill("⚓"),
+         tile_matched: Array(16).fill(false),
          score: 0,
-         firstTileRevealed: -1,
-         secondTileRevealed: -1
+         first_tile_revealed: -1,
+         second_tile_revealed: -1,
+         delay_reset: false
       };
+      this.channel.join()
+          .receive("ok", this.gotView.bind(this))
+          .receive("error", resp => { console.log("Ya dun goofed", resp)});
+   }
+
+   gotView(view) {
+      console.log("New view", view);
+      this.setState(view.game);
+   }
+
+   sendGuess(n) {
+      this.channel.push("guess", {index: n})
+                  .receive("ok", this.gotView.bind(this));
+   }
+
+   sendRefresh(){
+      console.log("weee");
+      this.channel.push("refresh")
+                  .receive("ok", this.gotView.bind(this));
+   }
+
+   componentDidUpdate(){
+      if(this.state.delay_reset == true){
+         var cent = this;
+         setTimeout(function() {
+            cent.sendRefresh();
+         }, 3000);
+         
+      }
    }
 
    render() {
+      //var onClick = this.state.delay_reset ? null : this.sendGuess.bind(this);
       return (
          <div className="game">
             <div className="tile-board">
                <Board
-                  tileOrder={this.state.tileOrder}
-                  tileRevealed={this.state.tileRevealed}
-                  tileMatched={this.state.tileMatched}
-                  onClick={n => this.handleClick(n)}
+                  tile_order_masked={this.state.tile_order_masked}
+                  tile_matched={this.state.tile_matched}
+                  onClick={this.sendGuess.bind(this)}
+                  delay={this.state.delay_reset}
                />
             </div>
             <button onClick={() => location.reload()}>
                Restart
             </button>
-            <h>Score {this.state.score}</h>
+            <h5>Score {this.state.score}</h5>
          </div>
       );
-   }
-   
-   handleClick(index){
-      var tileOrder = this.state.tileOrder;
-      var tempTileRevealed = this.state.tileRevealed;
-      var tempTileMatched = this.state.tileMatched;
-      var tempScore = this.state.score;
-      var tempFirstTileRevealed = this.state.firstTileRevealed;
-      var tempSecondTileRevealed = this.state.secondTileRevealed;
-
-      // matching has not begun
-      if(this.state.firstTileRevealed == -1){
-         tempScore++;
-         tempTileRevealed[index] = true;
-         tempFirstTileRevealed = index;
-      }
-      // first tile clicked already, clicking second
-      else if(this.state.firstTileRevealed != -1 && this.state.secondTileRevealed == -1){
-         tempTileRevealed[index] = true;
-         tempScore++;
-         // match found
-         if(tileOrder[this.state.firstTileRevealed] == tileOrder[index]){
-            tempTileMatched[this.state.firstTileRevealed] = true;
-            tempTileMatched[index] = true;
-            tempFirstTileRevealed = -1;
-            tempSecondTileRevealed = -1;
-         }
-         else{
-            tempSecondTileRevealed = index;
-            this.setState({
-               tileOrder: tileOrder,
-               tileRevealed: tempTileRevealed,
-               tileMatched: tempTileMatched,
-               score: tempScore,
-               firstTileRevealed: tempFirstTileRevealed,
-               secondTileRevealed: tempSecondTileRevealed
-            });
-
-            var parent = this;
-
-            setTimeout(function(){
-               tempTileRevealed[tempFirstTileRevealed] = false;
-               tempTileRevealed[tempSecondTileRevealed] = false;
-               tempFirstTileRevealed = -1;
-               tempSecondTileRevealed = -1;
-
-               parent.setState({
-                  tileOrder: tileOrder,
-                  tileRevealed: tempTileRevealed,
-                  tileMatched: tempTileMatched,
-                  score: tempScore,
-                  firstTileRevealed: tempFirstTileRevealed,
-                  secondTileRevealed: tempSecondTileRevealed
-               });    
-            }, 1500);
-         }
-      }
-      this.setState({
-         tileOrder: tileOrder,
-         tileRevealed: tempTileRevealed,
-         tileMatched: tempTileMatched,
-         score: tempScore,
-         firstTileRevealed: tempFirstTileRevealed,
-         secondTileRevealed: tempSecondTileRevealed
-      });     
    }
 }
 
@@ -149,14 +74,14 @@ class Board extends React.Component {
    renderTile(n) {
       return (
          <Tile
-            value = {this.props.tileOrder[n]}
-            revealed = {this.props.tileRevealed[n]}
-            matched = {this.props.tileMatched[n]}
-            index = {n}
+            value = {this.props.tile_order_masked[n]}
+            matched = {this.props.tile_matched[n]}
             onClick = {() => this.props.onClick(n)}
          />
       );
    }
+
+
 
    render() {
       return (
@@ -190,4 +115,15 @@ class Board extends React.Component {
    }
 }
 
+function Tile(props) {
+   var className = props.matched ? "tile-matched" : "tile-unmatched";
+   var onClick = props.value != "⚓" ? null : props.onClick;
+   var enabled = !props.delay_reset || props.matched.toString();
+   //var onClick = this.state.delay_reset ? null : this.sendGuess.bind(this);
 
+   return (
+      <button className={className} onClick={onClick} enabled={enabled}>
+         {props.value}
+      </button>
+   );
+}
