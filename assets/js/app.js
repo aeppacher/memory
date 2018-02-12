@@ -30,7 +30,15 @@ function init() {
   }
   
   if (document.getElementById('index-page')){
-  	form_init();
+  	console.log("wee");
+  	document.getElementById('sub2').onclick = function() {
+    	var val = document.getElementById('game-field').value;
+    	if (!val){
+    		val = "demo";
+    	}
+    	var cleaned = val.replace(/[\W_]+/g, ' ');
+    	window.location.href = '/game/' + cleaned;
+    };
   }
 }
 

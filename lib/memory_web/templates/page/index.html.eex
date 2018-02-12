@@ -1,6 +1,10 @@
 <div class="row">
   <div class="col">
     <h1 id="index-page">Join a Game</h1>
-    <p><a href="/game/demo">Join</a></p>
+    <form target="_blank" onsubmit="return loadGame()">
+  		Game name:<br>
+  		<input id="game-field" type="text" name="gamename" value="demo">
+		</form> 
+		<button id="sub2">join</button>
   </div>
 </div>
