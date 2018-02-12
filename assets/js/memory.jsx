@@ -36,7 +36,6 @@ class MemoryGame extends React.Component {
    }
 
    sendRefresh(){
-      console.log("weee");
       this.channel.push("refresh")
                   .receive("ok", this.gotView.bind(this));
    }
@@ -48,6 +47,13 @@ class MemoryGame extends React.Component {
             cent.sendRefresh();
          }, 1500);
       }
+   }
+
+   sendRestart(){
+   	 if(this.state.delay_reset == false){
+      this.channel.push("restart")
+                  .receive("ok", this.gotView.bind(this));	
+     }
    }
 
    render() {
@@ -62,7 +68,7 @@ class MemoryGame extends React.Component {
                   delay={this.state.delay_reset}
                />
             </div>
-            <button onClick={() => location.reload()}>
+            <button onClick={this.sendRestart.bind(this)}>
                Restart
             </button>
             <h5>Score {this.state.score}</h5>

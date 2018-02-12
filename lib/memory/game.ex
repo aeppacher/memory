@@ -96,6 +96,10 @@ defmodule Memory.Game do
 		Map.put(game, :score, sc)
 	end
 
+	def restart(game) do
+		new();
+	end
+
 	def initialize_matched do
 		Enum.map 0..15, fn _ -> false end
 	end
