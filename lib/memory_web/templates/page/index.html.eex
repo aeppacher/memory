@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col">
     <h1 id="index-page">Join a Game</h1>
-    <form target="_blank" onsubmit="return loadGame()">
+    <form>
   		Game name:<br>
   		<input id="game-field" type="text" name="gamename" value="demo">
 		</form> 
