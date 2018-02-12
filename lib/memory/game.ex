@@ -76,9 +76,9 @@ defmodule Memory.Game do
 		IO.puts(Enum.at(tou, sr))
 
 		if Enum.at(tou, fr) == Enum.at(tou, sr) do
-			tm = List.delete(tm, fr)
+			tm = List.delete_at(tm, fr)
 			tm = List.insert_at(tm, fr, true)
-			tm = List.delete(tm, sr)
+			tm = List.delete_at(tm, sr)
 			tm = List.insert_at(tm, sr, true)
 		end
 
@@ -131,7 +131,7 @@ defmodule Memory.Game do
 	end
 
 	def replace_element(masked, unmasked, index) do
-		masked = List.delete(masked, index)
+		masked = List.delete_at(masked, index)
 		List.insert_at(masked, index, Enum.at(unmasked, index))
 	end
 
@@ -152,7 +152,6 @@ defmodule Memory.Game do
   #sorts tiles at beginning for random game
 	def initialize_tiles do
 		tiles = ["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]
-		tiles
-		#Enum.shuffle(tiles)
+		Enum.shuffle(tiles)
 	end
 end

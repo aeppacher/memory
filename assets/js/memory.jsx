@@ -29,8 +29,10 @@ class MemoryGame extends React.Component {
    }
 
    sendGuess(n) {
-      this.channel.push("guess", {index: n})
-                  .receive("ok", this.gotView.bind(this));
+      if(this.state.delay_reset == false){
+         this.channel.push("guess", {index: n})
+                     .receive("ok", this.gotView.bind(this));
+      }
    }
 
    sendRefresh(){
@@ -44,8 +46,7 @@ class MemoryGame extends React.Component {
          var cent = this;
          setTimeout(function() {
             cent.sendRefresh();
-         }, 3000);
-         
+         }, 1500);
       }
    }
 
@@ -118,8 +119,7 @@ class Board extends React.Component {
 function Tile(props) {
    var className = props.matched ? "tile-matched" : "tile-unmatched";
    var onClick = props.value != "⚓" ? null : props.onClick;
-   var enabled = !props.delay_reset || props.matched.toString();
-   //var onClick = this.state.delay_reset ? null : this.sendGuess.bind(this);
+   var enabled = !props.delay_reset && props.matched.toString();
 
    return (
       <button className={className} onClick={onClick} enabled={enabled}>
